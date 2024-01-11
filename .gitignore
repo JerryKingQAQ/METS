@@ -1,3 +1,5 @@
 .idea
-.checkpoint
 __pycache__
+
+checkpoint/
+METS/BERT_pretrain/

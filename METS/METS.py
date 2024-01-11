@@ -8,11 +8,13 @@ from transformers import BertModel, BertTokenizer
 
 from METS.ECG_encoder.resnet1d import resnet18_1d
 
+bert_pretrain_path = "METS/BERT_pretrain/"
+
 
 class FrozenLanguageModel(nn.Module):
     def __init__(self):
         super(FrozenLanguageModel, self).__init__()
-        self.language_model = BertModel.from_pretrained('emilyalsentzer/Bio_ClinicalBERT')
+        self.language_model = BertModel.from_pretrained('emilyalsentzer/Bio_ClinicalBERT', cache_dir=bert_pretrain_path)
         for param in self.language_model.parameters():
             param.requires_grad = False
 
@@ -27,7 +29,7 @@ class METS(nn.Module):
         super(METS, self).__init__()
         self.text_encoder = FrozenLanguageModel()
         self.embedding_dim = self.text_encoder.language_model.config.hidden_size
-        self.tokenizer = BertTokenizer.from_pretrained('emilyalsentzer/Bio_ClinicalBERT')
+        self.tokenizer = BertTokenizer.from_pretrained('emilyalsentzer/Bio_ClinicalBERT', cache_dir=bert_pretrain_path)
         self.ecg_encoder = resnet18_1d(in_channels=16, projection_size=self.embedding_dim)
         self.class_text_representation = None
         self.stage = stage
