@@ -10,7 +10,7 @@ from torchmetrics import Precision, Accuracy, Recall, F1Score
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
-def classify(model, input):
+def similarity_classify(model, input):
     ecg_representation = model(input, None)
     class_text_rep_tensor = torch.stack(list(model.class_text_representation.values()))
 
@@ -32,9 +32,9 @@ def zero_shot_classification(model, ckpt_path, test_dataset, test_dataloader):
     model.zero_shot_precess_text(test_dataset.categories)
     model.stage = "test"
 
-    precision = Precision(task="multiclass", average='macro', num_classes=5)
+    precision = Precision(task="multiclass", num_classes=5)
     accuracy = Accuracy(task="multiclass", num_classes=5)
-    recall = Recall(task="multiclass", average='macro', num_classes=5)
+    recall = Recall(task="multiclass", num_classes=5)
     f1 = F1Score(task="multiclass", num_classes=5)
 
     test_history = {}
@@ -44,7 +44,7 @@ def zero_shot_classification(model, ckpt_path, test_dataset, test_dataloader):
         predictions = []
         targets = []
         for i, (input, target) in enumerate(test_dataloader):
-            max_probability_class, probabilities = classify(model, input)
+            max_probability_class, probabilities = similarity_classify(model, input)
             predictions.append(max_probability_class.flatten())
             targets.append(target.flatten())
 

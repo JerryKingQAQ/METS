@@ -14,7 +14,7 @@ from utils.dataset import SSLECGTextDataset, ZeroShotTestECGTextDataset
 from utils.utils import get_smallest_loss_model_path, make_log
 from zero_shot_classification import zero_shot_classification
 
-# close BERT pretrain file loaded warnings
+# close BERT pretrain file loading warnings
 tflogging.set_verbosity_error()
 
 if __name__ == "__main__":
