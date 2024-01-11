@@ -11,14 +11,14 @@ from transformers import logging as tflogging
 from METS.METS import METS
 from train import ssl_train
 from utils.dataset import SSLECGTextDataset, ZeroShotTestECGTextDataset
-from utils.utils import get_smallest_loss_model_path, make_log
+from utils.utils import get_smallest_loss_model_path, init_log
 from zero_shot_classification import zero_shot_classification
 
 # close BERT pretrain file loading warnings
 tflogging.set_verbosity_error()
 
 if __name__ == "__main__":
-    make_log()
+    init_log()
 
     num_samples = 100
     ecg_length = 1000

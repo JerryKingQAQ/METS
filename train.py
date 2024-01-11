@@ -8,7 +8,7 @@ import pandas as pd
 import torch
 from tqdm import tqdm
 
-from utils.utils import keep_top_files, print_log
+from utils.utils import keep_top_files, epoch_log
 
 
 class StepRunner:
@@ -92,7 +92,7 @@ def ssl_train(model, optimizer, loss_fn, metrics_dict,
 
     for epoch in range(1, epochs + 1):
 
-        print_log("Epoch {0} / {1}".format(epoch, epochs))
+        epoch_log("Epoch {0} / {1}".format(epoch, epochs))
 
         # 1 train -------------------------------------------------
         train_step_runner = StepRunner(model=model, stage="train",
@@ -115,14 +115,17 @@ def ssl_train(model, optimizer, loss_fn, metrics_dict,
             for name, metric in val_metrics.items():
                 train_history[name] = train_history.get(name, []) + [metric]
 
+        logging.info("Train Loss: {0:.6f}".format(train_history["train_loss"][epoch - 1]))
+        logging.info("Val Loss: {0:.6f}".format(train_history["val_loss"][epoch - 1]))
+
         # 3 save -------------------------------------------------
         arr_scores = train_history[monitor]
         best_score_idx = np.argmax(arr_scores) if mode == "max" else np.argmin(arr_scores)
         if best_score_idx == len(arr_scores) - 1:
             if not os.path.exists(save_path):
                 os.makedirs(save_path)
-            ckpt_name = "Epoch_{0}_loss_{1}.pt".format(train_history['epoch'][best_score_idx],
-                                                    train_history['val_loss'][best_score_idx])
+            ckpt_name = "Epoch_{0}_loss_{1:.6f}.pt".format(train_history['epoch'][best_score_idx],
+                                                           train_history['val_loss'][best_score_idx])
             ckpt_path = os.path.join(save_path, ckpt_name)
             torch.save({
                 'epoch': epoch,
@@ -132,8 +135,7 @@ def ssl_train(model, optimizer, loss_fn, metrics_dict,
             }, ckpt_path)
             keep_top_files(save_path, 5)
 
-            logging.info("<<<<<< reach best {0} : {1} >>>>>>".format(monitor,
-                                                              arr_scores[best_score_idx]))
+            logging.info("<<<<<< reach best {0} : {1} >>>>>>".format(monitor, arr_scores[best_score_idx]))
             logging.info("<<<<<< save the checkpoint {0} >>>>>>".format(ckpt_name))
         if len(arr_scores) - best_score_idx < patience:
             logging.info("<<<<<< {} without improvement in {} epoch, early stopping >>>>>>".format(

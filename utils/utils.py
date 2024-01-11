@@ -11,12 +11,12 @@ import numpy as np
 import torch
 
 
-def print_log(info):
+def epoch_log(info):
     logging.info("Start A New Epoch" + "\n" + "==========" * 8)
     logging.info(str(info) + "\n")
 
 
-def make_log():
+def init_log():
     LOG_FORMAT = "%(asctime)s - %(levelname)s - %(message)s"
     nowtime = datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
     if not os.path.exists("logs/"):
