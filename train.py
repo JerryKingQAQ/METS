@@ -130,7 +130,6 @@ def ssl_train(model, optimizer, loss_fn, metrics_dict,
                 'optimizer_state_dict': optimizer.state_dict(),
                 'val_loss': train_history[monitor][best_score_idx],
             }, ckpt_path)
-            print(train_history[monitor][best_score_idx])
             keep_top_files(save_path, 5)
 
             logging.info("<<<<<< reach best {0} : {1} >>>>>>".format(monitor,
