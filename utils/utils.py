@@ -1,12 +1,44 @@
 # -*- coding = utf-8 -*-
 # @File : utils.py
 # @Software : PyCharm
+import datetime
+import logging
 import os
 import random
 import re
 
 import numpy as np
 import torch
+
+
+def print_log(info):
+    logging.info("Start A New Epoch" + "\n" + "==========" * 8)
+    logging.info(str(info) + "\n")
+
+
+def make_log():
+    LOG_FORMAT = "%(asctime)s - %(levelname)s - %(message)s"
+    nowtime = datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
+    if not os.path.exists("logs/"):
+        os.makedirs("logs/")
+
+    # 创建一个日志记录器
+    logger = logging.getLogger()
+    logger.setLevel(logging.DEBUG)
+
+    # 创建文件处理程序，将日志写入文件
+    file_handler = logging.FileHandler(f'logs/{nowtime}.log')
+    file_handler.setLevel(logging.DEBUG)
+    file_handler.setFormatter(logging.Formatter(LOG_FORMAT))
+
+    # 创建控制台处理程序，将日志打印到控制台
+    console_handler = logging.StreamHandler()
+    console_handler.setLevel(logging.DEBUG)
+    console_handler.setFormatter(logging.Formatter(LOG_FORMAT))
+
+    # 将处理程序添加到日志记录器
+    logger.addHandler(file_handler)
+    logger.addHandler(console_handler)
 
 
 def set_seed(seed):
@@ -35,7 +67,7 @@ def keep_top_files(folder_path, top_x):
     # 保留前x个文件，删除其余文件
     for file, _ in files_sorted[top_x:]:
         os.remove(os.path.join(folder_path, file))
-        print(f"删除文件：{file}")
+        logging.warning(f"Delete File: {file}")
 
 
 def get_smallest_loss_model_path(folder_path):

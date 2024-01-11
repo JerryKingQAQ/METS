@@ -1,4 +1,4 @@
-import datetime
+import logging
 import os.path
 import sys
 from copy import deepcopy
@@ -8,13 +8,7 @@ import pandas as pd
 import torch
 from tqdm import tqdm
 
-from utils.utils import keep_top_files
-
-
-def printlog(info):
-    nowtime = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-    print("%s" % nowtime + "\n" + "==========" * 8)
-    print(str(info) + "\n")
+from utils.utils import keep_top_files, print_log
 
 
 class StepRunner:
@@ -97,7 +91,8 @@ def ssl_train(model, optimizer, loss_fn, metrics_dict,
     train_history = {}
 
     for epoch in range(1, epochs + 1):
-        printlog("Epoch {0} / {1}".format(epoch, epochs))
+
+        print_log("Epoch {0} / {1}".format(epoch, epochs))
 
         # 1 train -------------------------------------------------
         train_step_runner = StepRunner(model=model, stage="train",
@@ -129,12 +124,20 @@ def ssl_train(model, optimizer, loss_fn, metrics_dict,
             ckpt_name = "Epoch_{0}_loss_{1}.pt".format(train_history['epoch'][best_score_idx],
                                                     train_history['val_loss'][best_score_idx])
             ckpt_path = os.path.join(save_path, ckpt_name)
-            torch.save(model.state_dict(), ckpt_path)
+            torch.save({
+                'epoch': epoch,
+                'model_state_dict': model.state_dict(),
+                'optimizer_state_dict': optimizer.state_dict(),
+                'val_loss': train_history[monitor][best_score_idx],
+            }, ckpt_path)
+            print(train_history[monitor][best_score_idx])
             keep_top_files(save_path, 5)
-            print("<<<<<< reach best {0} : {1} >>>>>>".format(monitor,
+
+            logging.info("<<<<<< reach best {0} : {1} >>>>>>".format(monitor,
                                                               arr_scores[best_score_idx]))
+            logging.info("<<<<<< save the checkpoint {0} >>>>>>".format(ckpt_name))
         if len(arr_scores) - best_score_idx < patience:
-            print("<<<<<< {} without improvement in {} epoch, early stopping >>>>>>".format(
+            logging.info("<<<<<< {} without improvement in {} epoch, early stopping >>>>>>".format(
                 monitor, patience))
             break
 

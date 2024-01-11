@@ -2,27 +2,34 @@
 # @File : main.py
 # @Software : PyCharm
 import functools
+import logging
 
 import torch
 from torch.utils.data import DataLoader
+from transformers import logging as tflogging
 
 from METS.METS import METS
 from train import ssl_train
 from utils.dataset import SSLECGTextDataset, ZeroShotTestECGTextDataset
-from utils.utils import get_smallest_loss_model_path
+from utils.utils import get_smallest_loss_model_path, make_log
 from zero_shot_classification import zero_shot_classification
 
+# close BERT pretrain file loaded warnings
+tflogging.set_verbosity_error()
+
 if __name__ == "__main__":
+    make_log()
+
     num_samples = 100
     ecg_length = 1000
     train_dataset = SSLECGTextDataset(num_samples, ecg_length)
-    train_dataloader = DataLoader(train_dataset, batch_size=32, shuffle=True)
+    train_dataloader = DataLoader(train_dataset, batch_size=16, shuffle=True)
 
     val_dataset = SSLECGTextDataset(num_samples, ecg_length)
-    val_dataloader = DataLoader(val_dataset, batch_size=32, shuffle=True)
+    val_dataloader = DataLoader(val_dataset, batch_size=16, shuffle=True)
 
     test_dataset = ZeroShotTestECGTextDataset(num_samples, ecg_length)
-    test_dataloader = DataLoader(test_dataset, batch_size=32, shuffle=True)
+    test_dataloader = DataLoader(test_dataset, batch_size=16, shuffle=True)
 
     model = METS(stage="train")
     loss_fn = functools.partial(model.contrastive_loss, tau=0.07)
@@ -39,8 +46,8 @@ if __name__ == "__main__":
                                 patience=0.05,
                                 monitor="val_loss",
                                 mode="min")
-    print(train_dfhistory)
+    logging.info("\n" + train_dfhistory.to_string())
 
     ckpt_path = get_smallest_loss_model_path("./checkpoint")
     test_dfhistory = zero_shot_classification(model, ckpt_path, test_dataset, test_dataloader)
-    print(test_dfhistory)
+    logging.info("\n" + test_dfhistory.to_string())

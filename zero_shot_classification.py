@@ -28,7 +28,7 @@ def classify(model, input):
 
 
 def zero_shot_classification(model, ckpt_path, test_dataset, test_dataloader):
-    model.load_state_dict(torch.load(ckpt_path))
+    model.load_state_dict(torch.load(ckpt_path)["model_state_dict"])
     model.zero_shot_precess_text(test_dataset.categories)
     model.stage = "test"
 
