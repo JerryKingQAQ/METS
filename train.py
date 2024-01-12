@@ -90,6 +90,7 @@ def ssl_train(model, optimizer, loss_fn, metrics_dict,
               patience=5, monitor="val_loss", mode="min"):
     train_history = {}
 
+    logging.warning("=" * 25 + "Start SSL Training" + "=" * 25)
     for epoch in range(1, epochs + 1):
 
         epoch_log("Epoch {0} / {1}".format(epoch, epochs))

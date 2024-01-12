@@ -1,7 +1,7 @@
 .idea
 __pycache__
 
-checkpoint/
-METS/BERT_pretrain/
+checkpoint/*
+METS/BERT_pretrain/*
 
-logs
+logs/*

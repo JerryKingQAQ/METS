@@ -1,30 +1,13 @@
 # -*- coding = utf-8 -*-
 # @File : zero_shot_classification.py
 # @Software : PyCharm
-import numpy as np
+import logging
+
 import pandas as pd
 import torch
-import torch.nn.functional as F
 from torchmetrics import Precision, Accuracy, Recall, F1Score
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
-
-def similarity_classify(model, input):
-    ecg_representation = model(input, None)
-    class_text_rep_tensor = torch.stack(list(model.class_text_representation.values()))
-
-    # 计算相似度
-    similarities = [F.cosine_similarity(elem.unsqueeze(0), class_text_rep_tensor) for elem in ecg_representation]
-    similarities = torch.stack(similarities).to(device)
-
-    probabilities = F.softmax(similarities, dim=1).cpu().numpy()
-    max_probability_class = np.argmax(probabilities, axis=1)
-    # max_probabilities = np.max(probabilities, axis=1)
-
-    max_probability_class = torch.tensor(max_probability_class).long()
-
-    return max_probability_class, probabilities
 
 
 def zero_shot_classification(model, ckpt_path, test_dataset, test_dataloader):
@@ -38,13 +21,14 @@ def zero_shot_classification(model, ckpt_path, test_dataset, test_dataloader):
     f1 = F1Score(task="multiclass", num_classes=5)
 
     test_history = {}
+    logging.warning("=" * 25 + "Start Zero-Shot Testing" + "=" * 25)
 
     model.eval()
     with torch.no_grad():
         predictions = []
         targets = []
         for i, (input, target) in enumerate(test_dataloader):
-            max_probability_class, probabilities = similarity_classify(model, input)
+            max_probability_class = model(input, None)
             predictions.append(max_probability_class.flatten())
             targets.append(target.flatten())
 

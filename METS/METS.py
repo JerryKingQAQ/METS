@@ -1,6 +1,7 @@
 # -*- coding = utf-8 -*-
 # @File : METS.py
 # @Software : PyCharm
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -9,6 +10,7 @@ from transformers import BertModel, BertTokenizer
 from METS.ECG_encoder.resnet1d import resnet18_1d
 
 bert_pretrain_path = "METS/BERT_pretrain/"
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
 class FrozenLanguageModel(nn.Module):
@@ -60,7 +62,23 @@ class METS(nn.Module):
 
         elif self.stage == 'test':
             ecg_representation = self.ecg_encoder(ecg_data)
-            return ecg_representation
+            pred = self.similarity_classify(ecg_representation)
+            return pred
+
+    def similarity_classify(self, ecg_representation):
+        class_text_rep_tensor = torch.stack(list(self.class_text_representation.values()))
+
+        # 计算相似度
+        similarities = [F.cosine_similarity(elem.unsqueeze(0), class_text_rep_tensor) for elem in ecg_representation]
+        similarities = torch.stack(similarities).to(device)
+
+        probabilities = F.softmax(similarities, dim=1).cpu().numpy()
+        max_probability_class = np.argmax(probabilities, axis=1)
+        # max_probabilities = np.max(probabilities, axis=1)
+
+        max_probability_class = torch.tensor(max_probability_class).long()
+
+        return max_probability_class
 
     def contrastive_loss(self, ecg_representation, text_representation, tau=0.07):
         positive_similarity = F.cosine_similarity(ecg_representation, text_representation, dim=-1) / tau
