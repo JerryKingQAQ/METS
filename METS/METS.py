@@ -98,6 +98,5 @@ class METS(nn.Module):
             torch.sum(torch.exp(negative_similarity), dim=0)
         ).mean()
 
-        # TTODO 归一化等改进
         loss = (loss_ecg_to_text + loss_text_to_ecg) / 2
         return loss
