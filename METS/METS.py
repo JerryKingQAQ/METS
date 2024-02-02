@@ -87,7 +87,9 @@ class METS(nn.Module):
             text_representation.unsqueeze(0).repeat(ecg_representation.size(0), 1, 1),
             dim=-1
         ) / tau
-        negative_similarity.fill_diagonal_(-float('inf'))  # 将对角线设为负无穷，以忽略正样本对
+
+        # 将对角线设为负无穷，以忽略正样本对
+        negative_similarity.fill_diagonal_(-float('inf'))
 
         loss_ecg_to_text = -torch.log(
             torch.exp(positive_similarity) /
